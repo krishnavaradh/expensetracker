@@ -1,39 +1,65 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
+import { Slot, Stack, useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { View, StatusBar, StyleSheet, Text } from "react-native";
+import { useEffect, useState } from "react";
+import { colors } from "@/constants/theme";
+import { AuthProvider } from "@/contexts/authContext";
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+// ✅ Apply global white text color to ALL text components
+Text.defaultProps = Text.defaultProps || {};
+Text.defaultProps.style = { color: "white" };
+//const TEST_MODE = "true";
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+const Layout = () => {
+  const router = useRouter();
+  // const [isMounted, setIsMounted] = useState(false);
+  // useEffect(() => {
+  //   setIsMounted(true);
+  // }, []);
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+  // useEffect(() => {
+  //   if (isMounted && TEST_MODE) {
+  //     router.replace("../(models)/profileModels");
+  //   }
+  // }, [isMounted, router]);
 
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
+  // if (TEST_MODE && !isMounted) {
+  //   // Prevent rendering until the layout is mounted
+  //   return null;
+  // }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <AuthProvider>
+      <StatusBar barStyle="light-content" backgroundColor="black" />
+      <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
+        <View style={styles.container}>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: styles.stack, // ✅ Ensures all screens inherit black background
+            }}
+          >
+            {/* ✅ Ensures Slot properly renders all child screens */}
+            <Slot />
+          </Stack>
+        </View>
+      </SafeAreaView>
+    </AuthProvider>
   );
-}
+};
+
+export default Layout;
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.neutral900, // ✅ Ensures SafeAreaView has a black background
+  },
+  container: {
+    flex: 1,
+    backgroundColor: colors.neutral900, // ✅ Enforces black background for all screens
+  },
+  stack: {
+    backgroundColor: "black", // ✅ Ensures screens inside Stack inherit black background
+  },
+});
